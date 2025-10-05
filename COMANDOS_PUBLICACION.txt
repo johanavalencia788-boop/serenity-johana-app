@@ -1,0 +1,24 @@
+🚀 COPIA Y PEGA ESTOS COMANDOS PARA PUBLICAR TU SERENITY APP
+===============================================================
+
+# 1. Crear repositorio remoto (ve a https://github.com/new y crea el repo)
+Nombre: serenity-mental-wellness-app
+Descripción: 🌱 Serenity App - Aplicación de bienestar mental con IA para avatares personalizados
+✅ Public
+❌ NO agregues README, .gitignore, ni license (ya los tienes)
+
+# 2. Conectar tu repositorio local con GitHub
+git remote add origin https://github.com/TU-USUARIO/serenity-mental-wellness-app.git
+git branch -M main
+git push -u origin main
+
+# 3. Una vez en GitHub, ve a https://share.streamlit.io/
+- Sign up with GitHub
+- Deploy an app
+- Selecciona tu repositorio
+- Main file path: app.py
+- ¡LISTO!
+
+===============================================================
+TU APP ESTARÁ EN: https://TU-USUARIO-serenity-mental-wellness-app.streamlit.app
+===============================================================
