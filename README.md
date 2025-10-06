@@ -1,12 +1,16 @@
-# 🌱 Serenity App - Tu Bienestar Mental
+# � Serenity - Aplicación de Bienestar Mental Personalizada
 
-![Serenity App](https://img.shields.io/badge/Serenity-Bienestar%20Mental-brightgreen?style=for-the-badge&logo=heart)
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge&logo=python)
+> **Una experiencia única de bienestar mental creada por Johana Valencia**
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://serenity-johana-app.streamlit.app)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge&logo=python)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.28.0-red?style=for-the-badge&logo=streamlit)
 
-## 🌟 Descripción
+## 🌟 **¡Prueba Serenity Ahora!**
 
-**Serenity App** es una aplicación web innovadora de bienestar mental que combina herramientas de autocuidado con tecnología de **Inteligencia Artificial** para la creación de avatares personalizados.
+### 🚀 **[👉 ABRIR APLICACIÓN](https://serenity-johana-app.streamlit.app)**
+
+**Serenity** es una aplicación de bienestar mental completamente personalizada que te acompaña en tu viaje hacia el equilibrio emocional. Combina herramientas profesionales de mindfulness con una experiencia personalizada única.
 
 ## ✨ Características Principales
 
