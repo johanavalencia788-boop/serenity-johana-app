@@ -349,87 +349,20 @@ def crear_avatar_personalizado():
                 st.markdown("[Ir a Synthesia](https://www.synthesia.io/)")
     
     with tab3:
-    
-    with tab1:
-        st.markdown("#### 🤖 Crear Avatar con IA")
-        col1, col2 = st.columns(2)
+        st.markdown("#### 🎥 Subir Video Personal")
         
-        with col1:
-            st.markdown("""
-            **D-ID (Recomendado) - Avatar parlante con IA:**
-            1. Ve a [D-ID Studio](https://www.d-id.com/)
-            2. Sube una foto tuya o elige un avatar
-            3. Escribe tu texto de presentación
-            4. Genera el video parlante
-            5. Descarga y sube aquí
-            """)
-            if st.button("🔗 Abrir D-ID", key="d_id"):
-                st.markdown("[Ir a D-ID](https://www.d-id.com/)")
+        video_uploaded = st.file_uploader(
+            "📹 Sube tu video personal (opcional)", 
+            type=['mp4', 'avi', 'mov'],
+            help="Sube un video tuyo para usarlo como avatar personalizado"
+        )
         
-        with col2:
-            st.markdown("""
-            **Synthesia - Avatar profesional:**
-            1. Ve a [Synthesia](https://www.synthesia.io/)
-            2. Crea avatar personalizado
-            3. Graba tu mensaje
-            4. Exporta el video
-            5. Sube la URL aquí
-            """)
-            if st.button("🔗 Abrir Synthesia", key="synthesia"):
-                st.markdown("[Ir a Synthesia](https://www.synthesia.io/)")
-    
-    with tab2:
-        st.markdown("#### 📹 Grabar Video Selfie")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("""
-            **Loom - Grabación rápida:**
-            1. Ve a [Loom](https://www.loom.com/)
-            2. Graba un video de 30-60 segundos presentándote
-            3. Comparte el enlace público
-            4. Copia la URL embed
-            """)
-            if st.button("🔗 Abrir Loom", key="loom"):
-                st.markdown("[Ir a Loom](https://www.loom.com/)")
-        
-        with col2:
-            st.markdown("""
-            **Vidyard - Video profesional:**
-            1. Ve a [Vidyard](https://www.vidyard.com/)
-            2. Graba tu video de presentación
-            3. Personaliza con tu nombre
-            4. Obtén el enlace de embed
-            """)
-            if st.button("🔗 Abrir Vidyard", key="vidyard"):
-                st.markdown("[Ir a Vidyard](https://www.vidyard.com/)")
-    
-    with tab3:
-        st.markdown("#### � Avatar 3D Personalizado")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("""
-            **Ready Player Me - Avatar 3D:**
-            1. Ve a [Ready Player Me](https://readyplayer.me/)
-            2. Toma una selfie o personaliza
-            3. Crea tu avatar 3D
-            4. Exporta como video/gif
-            """)
-            if st.button("🔗 Abrir Ready Player Me", key="rpm"):
-                st.markdown("[Ir a Ready Player Me](https://readyplayer.me/)")
-        
-        with col2:
-            st.markdown("""
-            **Bitmoji/Memoji:**
-            1. Crea tu Bitmoji o Memoji
-            2. Graba animaciones
-            3. Convierte a video
-            4. Sube a Streamable
-            """)
-    
-    with tab4:
-        st.markdown("#### 📱 Subir Tu Propio Avatar")
+        if video_uploaded is not None:
+            st.success("✅ Video subido correctamente!")
+            st.video(video_uploaded)
+            st.session_state['video_personal'] = video_uploaded
+        else:
+            st.info("🤖 Sin video personal, se usará avatar IA generado.")
         
         # Subida de archivo
         uploaded_file = st.file_uploader(
