@@ -9,6 +9,21 @@ import colorsys
 import wave
 import struct
 
+# Frases motivacionales personalizadas
+FRASES_MOTIVACIONALES = [
+    "Tu bienestar mental es una prioridad, no un lujo",
+    "Cada día es una nueva oportunidad para cuidar tu mente",
+    "Eres más fuerte de lo que crees y más valioso de lo que imaginas",
+    "La paz interior comienza con una respiración consciente",
+    "Tu salud mental merece la misma atención que tu salud física",
+    "Pequeños pasos diarios hacia el bienestar crean grandes transformaciones",
+    "Está bien no estar bien todo el tiempo, es parte de ser humano",
+    "Tu mente es como un jardín: cultiva pensamientos que te nutran"
+]
+
+# Avatar por defecto (imagen base64 simple)
+AVATAR_SERENITY_IMAGEN = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%2381C784'/%3E%3Ccircle cx='40' cy='40' r='3' fill='white'/%3E%3Ccircle cx='60' cy='40' r='3' fill='white'/%3E%3Cpath d='M35,60 Q50,70 65,60' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+
 # Configuración inicial
 st.set_page_config(
     page_title="🌱 Serenity App - Tu Bienestar Mental",
@@ -620,26 +635,344 @@ def mostrar_serenity_parlante():
                     st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity - Tu asistente de bienestar")
 
 def mostrar_header():
-    """Muestra el header principal de la aplicación"""
+    """Muestra el header principal personalizado de la aplicación"""
     st.markdown('<h1 class="main-header">🌱 Serenity App</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Tu compañera digital para el bienestar mental y emocional</p>', unsafe_allow_html=True)
     
-    # Frase motivacional aleatoria
+    # Frase motivacional personalizada
     frase = random.choice(FRASES_MOTIVACIONALES)
-    st.markdown(f'<div class="motivational-quote">{frase}</div>', unsafe_allow_html=True)
+    if 'nombre_usuario' in st.session_state and st.session_state.nombre_usuario:
+        st.markdown(f'<div class="motivational-quote">¡Hola {st.session_state.nombre_usuario}! 🌟 {frase}</div>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="motivational-quote">{frase}</div>', unsafe_allow_html=True)
+
+def solicitar_nombre_usuario():
+    """Solicita el nombre del usuario para personalizar la experiencia"""
+    if 'nombre_usuario' not in st.session_state:
+        st.session_state.nombre_usuario = ""
+    
+    if not st.session_state.nombre_usuario:
+        st.markdown("### 🌟 ¡Bienvenido/a a Serenity!")
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown("""
+            <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #E8F5E8, #F0F8F0); border-radius: 20px; margin: 20px 0;">
+                <h3>🤝 Me encantaría conocerte mejor</h3>
+                <p>Para ofrecerte una experiencia personalizada de bienestar mental, ¿cómo te gustaría que te llame?</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            nombre_input = st.text_input(
+                "✨ Tu nombre o como prefieres que te llame:",
+                placeholder="Escribe tu nombre aquí...",
+                key="nombre_input"
+            )
+            
+            if st.button("🌱 Comenzar mi viaje de bienestar", type="primary", use_container_width=True):
+                if nombre_input.strip():
+                    st.session_state.nombre_usuario = nombre_input.strip()
+                    st.success(f"¡Hola {st.session_state.nombre_usuario}! 🎉 Bienvenido/a a tu espacio personal de bienestar")
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.warning("Por favor, escribe tu nombre para continuar 😊")
+        return False
+    return True
 
 def main():
     """Función principal de la aplicación"""
     
-    # Inicializar estado
+    # Inicializar estados
     if 'mostrar_creator' not in st.session_state:
         st.session_state.mostrar_creator = False
     
-    # Header principal
+    # Solicitar nombre si no se ha proporcionado
+    if not solicitar_nombre_usuario():
+        return
+    
+    # Header personalizado
     mostrar_header()
     
     # Avatar de Serenity
     mostrar_serenity_parlante()
+    
+    # Sección de estado emocional personalizada
+    mostrar_estado_emocional()
+    
+    # Herramientas de bienestar  
+    mostrar_herramientas_bienestar()
+
+def mostrar_estado_emocional():
+    """Muestra la sección de evaluación emocional personalizada"""
+    st.markdown("---")
+    st.markdown(f"### 💭 {st.session_state.nombre_usuario}, ¿cómo te sientes hoy?")
+    
+    # Diccionario de emociones con mensajes personalizados
+    emociones = {
+        "😊": {"nombre": "Feliz", "color": "#4CAF50", "mensaje": f"¡Qué maravilloso, {st.session_state.nombre_usuario}! La felicidad es contagiosa. Comparte tu alegría con otros."},
+        "😔": {"nombre": "Triste", "color": "#2196F3", "mensaje": f"Es normal sentirse triste a veces, {st.session_state.nombre_usuario}. Permítete sentir esta emoción, es parte de ser humano."},
+        "😰": {"nombre": "Ansioso", "color": "#FF9800", "mensaje": f"{st.session_state.nombre_usuario}, la ansiedad puede ser abrumadora. Respira profundo, estás seguro/a en este momento."},
+        "😡": {"nombre": "Enojado", "color": "#F44336", "mensaje": f"{st.session_state.nombre_usuario}, la ira es una emoción válida. ¿Qué puedes aprender de lo que te molesta?"},
+        "😴": {"nombre": "Cansado", "color": "#9C27B0", "mensaje": f"{st.session_state.nombre_usuario}, el descanso es fundamental. Escucha a tu cuerpo y date el tiempo que necesitas."},
+        "🤔": {"nombre": "Confundido", "color": "#607D8B", "mensaje": f"La confusión puede ser incómoda, {st.session_state.nombre_usuario}, pero también es el primer paso hacia la claridad."}
+    }
+    
+    # Mostrar botones de emociones
+    cols = st.columns(len(emociones))
+    for i, (emoji, data) in enumerate(emociones.items()):
+        with cols[i]:
+            if st.button(f"{emoji}\n{data['nombre']}", key=f"emotion_{emoji}", use_container_width=True):
+                st.session_state.emocion_actual = emoji
+                st.session_state.mensaje_emocion = data['mensaje']
+                st.session_state.color_emocion = data['color']
+    
+    # Mostrar mensaje personalizado si se seleccionó una emoción
+    if 'emocion_actual' in st.session_state:
+        st.markdown(f"""
+        <div style="background: {st.session_state.color_emocion}20; padding: 20px; border-radius: 15px; border-left: 5px solid {st.session_state.color_emocion}; margin: 20px 0;">
+            <p style="color: {st.session_state.color_emocion}; font-weight: bold; margin: 0;">
+                {st.session_state.mensaje_emocion}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Sugerencia de música según la emoción
+        if st.session_state.emocion_actual in ["😔", "😰"]:
+            st.info("🎵 Te recomiendo escuchar la música relajante de piano para encontrar paz interior.")
+        elif st.session_state.emocion_actual == "😊":
+            st.success("🎵 ¡Celebra tu felicidad con música ambiental que eleve tu espíritu!")
+        elif st.session_state.emocion_actual == "😡":
+            st.warning("🎵 La música de meditación puede ayudarte a canalizar y transformar esa energía.")
+
+def mostrar_herramientas_bienestar():
+    """Muestra las herramientas principales de bienestar"""
+    st.markdown("---")
+    st.markdown(f"### 🧠 Herramientas Personalizadas para {st.session_state.nombre_usuario}")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="feature-card">
+            <h4>💭 Diario Emocional Personal</h4>
+            <p>Registra tus pensamientos y emociones diarias en tu espacio privado</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("📖 Abrir mi diario", key="abrir_diario", use_container_width=True):
+            st.session_state.mostrar_diario = True
+    
+    with col2:
+        st.markdown("""
+        <div class="feature-card">
+            <h4>🧘 Meditación Guiada</h4>
+            <p>Ejercicios de relajación y mindfulness personalizados</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🕯️ Comenzar meditación", key="comenzar_meditacion", use_container_width=True):
+            st.session_state.mostrar_meditacion = True
+    
+    with col3:
+        st.markdown("""
+        <div class="feature-card">
+            <h4>📈 Seguimiento del Humor</h4>
+            <p>Monitorea tu estado emocional a lo largo del tiempo</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("📊 Ver mi progreso", key="ver_progreso", use_container_width=True):
+            st.session_state.mostrar_seguimiento = True
+    
+    # Mostrar secciones según lo que el usuario haya seleccionado
+    if st.session_state.get('mostrar_diario', False):
+        mostrar_diario_emocional()
+    
+    if st.session_state.get('mostrar_meditacion', False):
+        mostrar_meditacion_guiada()
+        
+    if st.session_state.get('mostrar_seguimiento', False):
+        mostrar_seguimiento_humor()
+
+def mostrar_diario_emocional():
+    """Muestra la funcionalidad del diario emocional personalizado"""
+    st.markdown("---")
+    st.markdown(f"### 📖 Diario Emocional de {st.session_state.nombre_usuario}")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col2:
+        if st.button("❌ Cerrar diario"):
+            st.session_state.mostrar_diario = False
+            st.rerun()
+    
+    with col1:
+        st.markdown("*Tu espacio seguro para expresar tus pensamientos y emociones*")
+    
+    # Área de escritura
+    entrada_diario = st.text_area(
+        f"✍️ ¿Qué tienes en mente hoy, {st.session_state.nombre_usuario}?",
+        placeholder=f"Querido diario, hoy {st.session_state.nombre_usuario} se siente...",
+        height=150,
+        key="entrada_diario"
+    )
+    
+    col1, col2, col3 = st.columns([2, 1, 1])
+    
+    with col1:
+        if st.button("💾 Guardar en mi diario", type="primary"):
+            if entrada_diario.strip():
+                fecha_actual = time.strftime("%Y-%m-%d %H:%M")
+                entrada_completa = f"""
+📅 Fecha: {fecha_actual}
+Usuario: {st.session_state.nombre_usuario}
+Emoción actual: {st.session_state.get('emocion_actual', 'No especificada')}
+
+💭 Reflexión:
+{entrada_diario}
+
+---
+"""
+                # Guardar en session state (en producción se podría usar una base de datos)
+                if 'entradas_diario' not in st.session_state:
+                    st.session_state.entradas_diario = []
+                
+                st.session_state.entradas_diario.append({
+                    'fecha': fecha_actual,
+                    'contenido': entrada_diario,
+                    'emocion': st.session_state.get('emocion_actual', '🤔')
+                })
+                
+                st.success(f"✅ Entrada guardada en tu diario personal, {st.session_state.nombre_usuario}")
+                st.session_state.entrada_diario = ""  # Limpiar el área de texto
+    
+    with col2:
+        if st.button("📚 Ver entradas anteriores"):
+            st.session_state.mostrar_historial = True
+    
+    # Mostrar historial si se solicita
+    if st.session_state.get('mostrar_historial', False):
+        st.markdown("### 📚 Tus reflexiones anteriores")
+        if 'entradas_diario' in st.session_state and st.session_state.entradas_diario:
+            for i, entrada in enumerate(reversed(st.session_state.entradas_diario[-5:])):  # Últimas 5 entradas
+                st.markdown(f"""
+                <div style="background: #f0f8f0; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #4CAF50;">
+                    <p><strong>{entrada['emocion']} {entrada['fecha']}</strong></p>
+                    <p>{entrada['contenido']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Aún no tienes entradas en tu diario. ¡Comienza escribiendo algo hoy!")
+
+def mostrar_meditacion_guiada():
+    """Muestra la funcionalidad de meditación guiada personalizada"""
+    st.markdown("---")
+    st.markdown(f"### 🧘 Meditación Personalizada para {st.session_state.nombre_usuario}")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col2:
+        if st.button("❌ Cerrar meditación"):
+            st.session_state.mostrar_meditacion = False
+            st.rerun()
+    
+    with col1:
+        st.markdown("*Encuentra tu paz interior con ejercicios personalizados*")
+    
+    # Tipos de meditación
+    tipo_meditacion = st.selectbox(
+        "🎯 Selecciona tu práctica de hoy:",
+        ["Respiración consciente", "Relajación profunda", "Autocompasión", "Transformación de emociones", "Concentración mental"],
+        key="tipo_meditacion"
+    )
+    
+    duracion = st.slider("⏰ Duración (minutos):", 5, 20, 10, key="duracion_meditacion")
+    
+    if st.button("🕯️ Comenzar mi sesión", type="primary", use_container_width=True):
+        # Simulación de meditación guiada
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        frases_por_tipo = {
+            "Respiración consciente": [
+                f"Bienvenido/a {st.session_state.nombre_usuario}, vamos a despertar tu energía interior ⚡",
+                "Inhala profundamente... siente cómo el aire llena tus pulmones",
+                "Exhala lentamente... libera toda la tensión",
+                "Tu respiración es tu ancla al momento presente"
+            ],
+            "Relajación profunda": [
+                f"{st.session_state.nombre_usuario}, es momento de liberar toda tensión 🌊",
+                "Relaja tus hombros... déjalos caer suavemente",
+                "Siente cómo cada músculo se afloja y descansa",
+                "Tu cuerpo merece este momento de paz"
+            ],
+            "Autocompasión": [
+                f"{st.session_state.nombre_usuario}, mereces amor y comprensión 💗",
+                "Háblate con la misma gentileza que le hablarías a un buen amigo",
+                "Eres humano/a, y está bien no ser perfecto/a",
+                "Tu corazón es tu refugio seguro"
+            ]
+        }
+        
+        frases = frases_por_tipo.get(tipo_meditacion, frases_por_tipo["Respiración consciente"])
+        
+        for i in range(duracion):
+            progress = (i + 1) / duracion
+            progress_bar.progress(progress)
+            
+            frase = frases[i % len(frases)]
+            status_text.markdown(f"🧘 **{frase}**")
+            
+            time.sleep(1)  # En producción, esto sería más interactivo
+        
+        progress_bar.progress(1.0)
+        status_text.markdown(f"✨ **¡Excelente {st.session_state.nombre_usuario}! Has completado tu meditación personalizada**")
+        st.balloons()
+
+def mostrar_seguimiento_humor():
+    """Muestra el seguimiento del estado de ánimo"""
+    st.markdown("---")
+    st.markdown(f"### 📊 Seguimiento Emocional de {st.session_state.nombre_usuario}")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col2:
+        if st.button("❌ Cerrar seguimiento"):
+            st.session_state.mostrar_seguimiento = False
+            st.rerun()
+    
+    with col1:
+        st.markdown("*Monitorea tu bienestar emocional a lo largo del tiempo*")
+    
+    # Simulación de datos de seguimiento
+    if 'historial_emociones' not in st.session_state:
+        st.session_state.historial_emociones = []
+    
+    # Registrar emoción actual si existe
+    if 'emocion_actual' in st.session_state:
+        fecha_hoy = time.strftime("%Y-%m-%d")
+        
+        # Verificar si ya se registró hoy
+        if not any(entrada['fecha'] == fecha_hoy for entrada in st.session_state.historial_emociones):
+            st.session_state.historial_emociones.append({
+                'fecha': fecha_hoy,
+                'emocion': st.session_state.emocion_actual,
+                'timestamp': time.time()
+            })
+    
+    # Mostrar resumen
+    if st.session_state.historial_emociones:
+        st.markdown("### 📈 Tu progreso emocional:")
+        
+        for entrada in st.session_state.historial_emociones[-7:]:  # Últimos 7 días
+            st.markdown(f"**{entrada['fecha']}**: {entrada['emocion']}")
+        
+        # Insight personalizado
+        total_entries = len(st.session_state.historial_emociones)
+        st.info(f"🎯 {st.session_state.nombre_usuario}, has registrado tu estado emocional {total_entries} {'vez' if total_entries == 1 else 'veces'}. ¡Continúa con este gran hábito de autoconocimiento!")
+    else:
+        st.info(f"¡Hola {st.session_state.nombre_usuario}! Selecciona tu emoción actual arriba para comenzar tu seguimiento personal.")
     
     # Contenido principal de la app
     st.markdown("---")
@@ -671,49 +1004,77 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
-    # Sección de Música Relajante
+    # Sección de Música Terapéutica
+    mostrar_musica_terapeutica()
+    
+    # Footer personalizado
     st.markdown("---")
-    st.markdown("## 🎵 Música Relajante")
-    st.markdown("Disfruta de música generada especialmente para tu relajación")
+    st.markdown(f"""
+    <div style="text-align: center; color: #666; margin-top: 50px;">
+        <p>💚 {st.session_state.nombre_usuario}, cuidamos tu bienestar mental con dedicación</p>
+        <p><small>Serenity App © 2024 - Tu compañera personal para el bienestar mental</small></p>
+        <p><small>✨ Hecho con amor para tu crecimiento emocional</small></p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def mostrar_musica_terapeutica():
+    """Muestra la sección de música terapéutica personalizada"""
+    st.markdown("---")
+    st.markdown(f"### 🎵 Música Terapéutica para {st.session_state.nombre_usuario}")
+    st.markdown("*Música generada especialmente para tu momento de bienestar*")
+    
+    # Recomendación basada en el estado emocional
+    if 'emocion_actual' in st.session_state:
+        recomendaciones = {
+            "😊": ("🎹 Piano", "Celebra tu alegría con la hermosa Ballade pour Adeline"),
+            "😔": ("🌊 Naturaleza", "Los sonidos naturales pueden reconfortar tu corazón"),
+            "😰": ("🧘 Meditación", "Los cuencos tibetanos te ayudarán a encontrar calma"),
+            "😡": ("🌌 Ambiental", "Música etérea para transformar esa energía"),
+            "😴": ("🎹 Piano", "Melodías suaves para relajar tu mente"),
+            "🤔": ("🧘 Meditación", "Sonidos que facilitan la introspección")
+        }
+        
+        if st.session_state.emocion_actual in recomendaciones:
+            tipo_rec, mensaje_rec = recomendaciones[st.session_state.emocion_actual]
+            st.info(f"💡 **Recomendación personal**: {tipo_rec} - {mensaje_rec}")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        if st.button("🎹 Piano - Ballade pour Adeline", key="piano_btn"):
-            with st.spinner("🎼 Generando melodía de Richard Clayderman..."):
+        st.markdown("### 🎹 Piano Clásico")
+        st.markdown("*Ballade pour Adeline*")
+        if st.button("🎼 Escuchar", key="piano_btn", use_container_width=True):
+            with st.spinner(f"� Creando música especial para {st.session_state.nombre_usuario}..."):
                 audio_data = generar_musica_relajante("piano", 30)
                 st.audio(audio_data, format='audio/wav')
-                st.success("🎵 ¡Disfruta de Ballade pour Adeline!")
+                st.success("🎵 Disfruta de esta obra maestra de Richard Clayderman")
     
     with col2:
-        if st.button("🌊 Sonidos de Naturaleza", key="natura_btn"):
-            with st.spinner("🌧️ Creando ambiente natural..."):
+        st.markdown("### 🌊 Sonidos Naturales")
+        st.markdown("*Lluvia y viento suave*")
+        if st.button("🌧️ Escuchar", key="natura_btn", use_container_width=True):
+            with st.spinner("� Recreando la naturaleza para ti..."):
                 audio_data = generar_musica_relajante("naturaleza", 30)
                 st.audio(audio_data, format='audio/wav')
-                st.success("🌿 ¡Relájate con la naturaleza!")
+                st.success("� Conecta con la serenidad natural")
     
     with col3:
-        if st.button("🌌 Música Ambiental", key="ambient_btn"):
-            with st.spinner("✨ Generando atmósfera relajante..."):
+        st.markdown("### 🌌 Música Ambiental")
+        st.markdown("*Drones armónicos*")
+        if st.button("✨ Escuchar", key="ambient_btn", use_container_width=True):
+            with st.spinner("🌟 Generando atmósfera etérea..."):
                 audio_data = generar_musica_relajante("ambient", 30)
                 st.audio(audio_data, format='audio/wav')
-                st.success("🌟 ¡Sumérgete en la calma!")
+                st.success("� Sumérgete en la calma profunda")
     
     with col4:
-        if st.button("🧘 Meditación", key="meditation_btn"):
-            with st.spinner("🎎 Creando sonidos de cuencos..."):
+        st.markdown("### 🧘 Meditación")
+        st.markdown("*Cuencos tibetanos*")
+        if st.button("🕉️ Escuchar", key="meditation_btn", use_container_width=True):
+            with st.spinner("🎎 Sintonizando cuencos sagrados..."):
                 audio_data = generar_musica_relajante("meditacion", 30)
                 st.audio(audio_data, format='audio/wav')
-                st.success("🕉️ ¡Medita con serenidad!")
-
-    # Footer
-    st.markdown("---")
-    st.markdown("""
-    <div style="text-align: center; color: #666; margin-top: 50px;">
-        <p>💚 Desarrollado con amor para tu bienestar mental</p>
-        <p><small>Serenity App © 2024 - Cuidando tu mente, alimentando tu alma</small></p>
-    </div>
-    """, unsafe_allow_html=True)
+                st.success("� Encuentra tu centro interior")
 
 if __name__ == "__main__":
     main()
