@@ -715,36 +715,46 @@ def mostrar_serenity_parlante():
                 video_downloads = r"c:\Users\johan\Downloads\Untitled video (3).mp4"
                 
                 try:
-                    # Verificar si estamos en deployment o local
-                    is_local = os.path.exists(video_downloads)
+                    # Lista de rutas para el video en orden de prioridad
+                    video_sources = [
+                        video_local,  # Archivo local en el proyecto
+                        video_downloads,  # Archivo en Downloads (solo local)
+                        "https://github.com/johanavalencia788-boop/serenity-johana-app/raw/main/johana_avatar.mp4"  # GitHub raw
+                    ]
                     
-                    if os.path.exists(video_local):
-                        # Video encontrado en el proyecto
-                        st.video(video_local, start_time=0)
-                        st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
-                        st.markdown("*🌸 Tu avatar personalizado en video*")
-                        if is_local:
-                            st.info("🔊 Puedes ajustar el volumen usando los controles del video")
-                            
-                    elif is_local and os.path.exists(video_downloads):
-                        # Solo en entorno local
-                        st.video(video_downloads, start_time=0)  
-                        st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
-                        st.markdown("*🌸 Tu avatar personalizado en video*")
-                        st.info("🔊 Puedes ajustar el volumen usando los controles del video")
-                        
-                    else:
-                        # Si no encuentra video, mostrar avatar elegante generado
+                    video_loaded = False
+                    
+                    for video_source in video_sources:
+                        try:
+                            if video_source.startswith('http'):
+                                # URL de GitHub
+                                st.video(video_source, start_time=0)
+                                st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
+                                st.markdown("*🌸 Tu avatar personalizado en video (desde GitHub)*")
+                                st.info("🔊 Puedes ajustar el volumen usando los controles del video")
+                                video_loaded = True
+                                break
+                            elif os.path.exists(video_source):
+                                # Archivo local
+                                st.video(video_source, start_time=0)
+                                st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
+                                st.markdown("*🌸 Tu avatar personalizado en video*")
+                                st.info("🔊 Puedes ajustar el volumen usando los controles del video")
+                                video_loaded = True
+                                break
+                        except Exception as video_error:
+                            # Continuar con la siguiente fuente si esta falla
+                            continue
+                    
+                    if not video_loaded:
+                        # Si no se pudo cargar ningún video, mostrar avatar generado hermoso
                         avatar_img = generar_avatar_personalizado("JV", "Johana Valencia")
                         st.image(avatar_img, width=280, caption="✨ Johana Valencia - Tu asistente personalizada de bienestar mental")
                         st.markdown("*🌸 Tu avatar personalizado*")
-                        
-                        # Solo mostrar mensaje de video si estamos en local
-                        if is_local:
-                            st.info("💡 Video personal disponible localmente - Usando avatar generado para deployment público")
+                        st.info("💡 Avatar generado - Video disponible localmente")
                             
                 except Exception as e:
-                    # Si hay cualquier error, mostrar avatar generado elegante
+                    # Si hay cualquier error general, mostrar avatar generado elegante
                     avatar_img = generar_avatar_personalizado("JV", "Johana Valencia")
                     st.image(avatar_img, width=280, caption="✨ Johana Valencia - Tu asistente personalizada de bienestar mental")
                     st.markdown("*🌸 Tu avatar personalizado*")
