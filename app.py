@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import os
 from unidecode import unidecode
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
@@ -21,8 +22,8 @@ FRASES_MOTIVACIONALES = [
     "Tu mente es como un jardín: cultiva pensamientos que te nutran"
 ]
 
-# Avatar por defecto (imagen base64 simple)
-AVATAR_SERENITY_IMAGEN = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%2381C784'/%3E%3Ccircle cx='40' cy='40' r='3' fill='white'/%3E%3Ccircle cx='60' cy='40' r='3' fill='white'/%3E%3Cpath d='M35,60 Q50,70 65,60' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+# Avatar principal de Serenity - imagen profesional y amigable
+AVATAR_SERENITY_IMAGEN = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face&q=80"
 
 # Configuración inicial
 st.set_page_config(
@@ -85,7 +86,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Constantes y configuración
-AVATAR_SERENITY_IMAGEN = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face"
+AVATAR_SERENITY_IMAGEN = "https://raw.githubusercontent.com/johanavalencia788-boop/serenity-johana-app/main/johana_avatar.jpg"
 
 # Frases motivacionales
 FRASES_MOTIVACIONALES = [
@@ -227,6 +228,87 @@ def crear_avatar_animado_ia(nombre, frames=4):
         frames_generados.append(avatar_img)
     
     return frames_generados
+
+def generar_avatar_personalizado(iniciales, nombre_completo):
+    """Genera un avatar personalizado con las iniciales de la persona"""
+    size = (300, 300)
+    
+    # Crear imagen con fondo gradiente suave
+    img = Image.new('RGB', size, color='white')
+    draw = ImageDraw.Draw(img)
+    
+    # Fondo gradiente personalizado (colores suaves y elegantes)
+    for y in range(size[1]):
+        # Gradiente de rosa suave a lavanda
+        r = int(255 - (y / size[1]) * 50)  # 255 -> 205
+        g = int(240 - (y / size[1]) * 60)  # 240 -> 180  
+        b = int(245 - (y / size[1]) * 30)  # 245 -> 215
+        draw.line([(0, y), (size[0], y)], fill=(r, g, b))
+    
+    # Círculo principal para el avatar
+    circle_size = 200
+    circle_x = (size[0] - circle_size) // 2
+    circle_y = (size[1] - circle_size) // 2 - 20
+    
+    # Sombra del círculo
+    shadow_offset = 8
+    draw.ellipse([circle_x + shadow_offset, circle_y + shadow_offset, 
+                  circle_x + circle_size + shadow_offset, circle_y + circle_size + shadow_offset], 
+                fill=(200, 200, 200, 100))
+    
+    # Círculo principal con bordes elegantes
+    draw.ellipse([circle_x, circle_y, circle_x + circle_size, circle_y + circle_size], 
+                fill=(255, 255, 255), outline=(180, 120, 180), width=4)
+    
+    # Dibujar las iniciales grandes y elegantes
+    try:
+        # Intentar usar una fuente más grande
+        font = ImageFont.load_default()
+    except:
+        font = ImageFont.load_default()
+    
+    # Obtener tamaño del texto de iniciales
+    iniciales_text = iniciales.upper()
+    text_bbox = draw.textbbox((0, 0), iniciales_text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
+    text_height = text_bbox[3] - text_bbox[1]
+    
+    # Posicionar las iniciales en el centro del círculo
+    text_x = circle_x + (circle_size - text_width) // 2
+    text_y = circle_y + (circle_size - text_height) // 2 - 10
+    
+    # Sombra de las iniciales
+    draw.text((text_x + 3, text_y + 3), iniciales_text, fill=(100, 100, 100), font=font)
+    # Iniciales principales en color elegante
+    draw.text((text_x, text_y), iniciales_text, fill=(120, 60, 120), font=font)
+    
+    # Nombre completo en la parte inferior
+    nombre_bbox = draw.textbbox((0, 0), nombre_completo, font=font)
+    nombre_width = nombre_bbox[2] - nombre_bbox[0]
+    nombre_x = (size[0] - nombre_width) // 2
+    nombre_y = circle_y + circle_size + 25
+    
+    # Sombra del nombre
+    draw.text((nombre_x + 2, nombre_y + 2), nombre_completo, fill=(150, 150, 150), font=font)
+    # Nombre principal
+    draw.text((nombre_x, nombre_y), nombre_completo, fill=(100, 50, 100), font=font)
+    
+    # Elementos decorativos alrededor
+    for i in range(6):
+        angle = i * 60  # 6 estrellas alrededor
+        star_radius = 120
+        star_x = circle_x + circle_size//2 + int(star_radius * np.cos(np.radians(angle)))
+        star_y = circle_y + circle_size//2 + int(star_radius * np.sin(np.radians(angle)))
+        
+        if 0 <= star_x < size[0] - 20 and 0 <= star_y < size[1] - 20:
+            draw.text((star_x, star_y), "✨", fill=(200, 150, 200))
+    
+    # Convertir a bytes para uso en Streamlit
+    img_bytes = io.BytesIO()
+    img.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+    
+    return img_bytes.getvalue()
 
 def generar_musica_relajante(tipo="piano", duracion=30):
     """Genera música relajante usando numpy"""
@@ -557,6 +639,25 @@ def crear_avatar_personalizado():
         else:
             st.info("📁 Selecciona un archivo para comenzar")
             
+            # Opción especial para activar el avatar de la creadora
+            st.markdown("---")
+            st.markdown("**👩‍💻 ¿Quieres conocer a la creadora de Serenity?**")
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button("👋 Activar Avatar de Johana", key="avatar_johana", use_container_width=True):
+                    # URL de tu foto personal (puedes cambiar esta URL por una foto tuya)
+                    st.session_state.avatar_creadora = "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face&q=80"
+                    st.session_state.mostrar_avatar_creadora = True
+                    st.success("¡Avatar de Johana activado! 🌟")
+                    st.rerun()
+            
+            with col2:
+                if st.button("🤖 Usar Avatar IA", key="avatar_ia_default", use_container_width=True):
+                    st.session_state.mostrar_avatar_creadora = False
+                    st.success("Avatar IA activado ✨")
+                    st.rerun()
+            
             # Ejemplo visual
             st.markdown("**📸 Ejemplos de avatares efectivos:**")
             col1, col2, col3 = st.columns(3)
@@ -603,36 +704,53 @@ def mostrar_serenity_parlante():
                     else:
                         st.video(st.session_state.avatar_personalizado)
         else:
-            # Intentar mostrar tu video personal primero
-            import os
-            tu_video = r"c:\Users\johan\Downloads\Untitled video (3).mp4"
+            # Mostrar avatar principal de Serenity
+            st.markdown("#### � ¡Hola! Soy Serenity Johana")
             
-            if os.path.exists(tu_video):
-                st.markdown("#### 🎬 Conoce a Serenity - Tu Avatar Personal")
-                try:
-                    with open(tu_video, 'rb') as video_file:
-                        video_bytes = video_file.read()
-                    st.video(video_bytes)
-                    st.caption("✨ Serenity Johana - Tu asistente personalizada de bienestar mental")
-                except Exception as e:
-                    # Fallback a imagen si hay error con el video
-                    st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity - Tu asistente de bienestar")
-            else:
-                # Mostrar mensaje motivacional y opción de subir video
-                st.markdown("""
-                <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #E8F5E8, #F0F8F0); border-radius: 15px; margin: 10px 0;">
-                    <h4>🌟 ¡Hola! Soy Serenity</h4>
-                    <p>Tu compañera digital para el bienestar mental</p>
-                    <p><em>💡 Puedes personalizar tu avatar usando el botón de arriba</em></p>
-                </div>
-                """, unsafe_allow_html=True)
+            # Tu avatar personal - Tu video
+            col_av1, col_av2, col_av3 = st.columns([1, 2, 1])
+            with col_av2:
+                # Mostrar tu video personal como avatar
+                video_local = "johana_avatar.mp4"
+                video_downloads = r"c:\Users\johan\Downloads\Untitled video (3).mp4"
                 
-                # Avatar por defecto generado con IA
-                if 'avatar_generado' in st.session_state:
-                    avatar_img = Image.open(io.BytesIO(st.session_state.avatar_generado))
-                    st.image(avatar_img, width=200, caption="Avatar generado con IA")
-                else:
-                    st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity - Tu asistente de bienestar")
+                try:
+                    # Intentar cargar tu video personal primero
+                    if os.path.exists(video_local):
+                        st.success("✅ ¡Video encontrado en el proyecto!")
+                        # Video con controles de audio habilitados
+                        st.video(video_local, start_time=0)
+                        st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
+                        st.markdown("*🌸 Tu avatar personalizado en video*")
+                        st.info("🔊 Puedes ajustar el volumen usando los controles del video")
+                    elif os.path.exists(video_downloads):
+                        st.success("✅ ¡Video encontrado en Downloads!")
+                        # Video con controles de audio habilitados
+                        st.video(video_downloads, start_time=0)  
+                        st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
+                        st.markdown("*🌸 Tu avatar personalizado en video*")
+                        st.info("🔊 Puedes ajustar el volumen usando los controles del video")
+                    else:
+                        st.warning("⚠️ Video no encontrado, mostrando avatar generado")
+                        # Mostrar avatar generado con iniciales
+                        avatar_img = generar_avatar_personalizado("JV", "Johana Valencia")
+                        st.image(avatar_img, width=250, caption="✨ Johana - Tu asistente personalizada de bienestar mental")
+                        st.markdown("*🌸 Tu avatar personalizado con tus iniciales*")
+                except Exception as e:
+                    # Si hay cualquier error, mostrar avatar generado
+                    st.error(f"❌ Error cargando video: {str(e)}")
+                    avatar_img = generar_avatar_personalizado("JV", "Johana Valencia")
+                    st.image(avatar_img, width=250, caption="✨ Johana - Tu asistente personalizada de bienestar mental")
+                    st.markdown("*🌸 Tu avatar personalizado con tus iniciales*")
+            
+            # Mensaje de bienvenida personalizado
+            st.markdown("""
+            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #E8F5E8, #F0F8F0); border-radius: 15px; margin: 10px 0;">
+                <p><strong>💚 Tu compañera digital para el bienestar mental</strong></p>
+                <p><em>Estoy aquí para acompañarte en tu viaje hacia el bienestar emocional</em></p>
+                <p><small>💡 Puedes personalizar tu avatar usando el botón de arriba</small></p>
+            </div>
+            """, unsafe_allow_html=True)
 
 def mostrar_header():
     """Muestra el header principal personalizado de la aplicación"""

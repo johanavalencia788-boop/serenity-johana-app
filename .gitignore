@@ -40,6 +40,9 @@ Thumbs.db
 *.avi
 *.mov
 
+# Excepciones: permitir el avatar de Johana
+!johana_avatar.mp4
+
 # Archivos temporales
 *.tmp
 *.log
