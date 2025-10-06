@@ -646,11 +646,18 @@ def mostrar_header():
     else:
         st.markdown(f'<div class="motivational-quote">{frase}</div>', unsafe_allow_html=True)
 
-def solicitar_nombre_usuario():
-    """Solicita el nombre del usuario para personalizar la experiencia"""
+
+
+def main():
+    """Función principal de la aplicación"""
+    
+    # Inicializar estados
+    if 'mostrar_creator' not in st.session_state:
+        st.session_state.mostrar_creator = False
     if 'nombre_usuario' not in st.session_state:
         st.session_state.nombre_usuario = ""
     
+    # Si no hay nombre, mostrar bienvenida
     if not st.session_state.nombre_usuario:
         st.markdown("### 🌟 ¡Bienvenido/a a Serenity!")
         
@@ -677,20 +684,9 @@ def solicitar_nombre_usuario():
                     st.rerun()
                 else:
                     st.warning("Por favor, escribe tu nombre para continuar 😊")
-        return False
-    return True
-
-def main():
-    """Función principal de la aplicación"""
-    
-    # Inicializar estados
-    if 'mostrar_creator' not in st.session_state:
-        st.session_state.mostrar_creator = False
-    
-    # Solicitar nombre si no se ha proporcionado
-    if not solicitar_nombre_usuario():
         return
     
+    # Una vez que se tiene el nombre, mostrar la aplicación completa
     # Header personalizado
     mostrar_header()
     
@@ -700,7 +696,7 @@ def main():
     # Sección de estado emocional personalizada
     mostrar_estado_emocional()
     
-    # Herramientas de bienestar  
+    # Herramientas de bienestar
     mostrar_herramientas_bienestar()
 
 def mostrar_estado_emocional():
