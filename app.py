@@ -715,33 +715,39 @@ def mostrar_serenity_parlante():
                 video_downloads = r"c:\Users\johan\Downloads\Untitled video (3).mp4"
                 
                 try:
-                    # Intentar cargar tu video personal primero
+                    # Verificar si estamos en deployment o local
+                    is_local = os.path.exists(video_downloads)
+                    
                     if os.path.exists(video_local):
-                        st.success("✅ ¡Video encontrado en el proyecto!")
-                        # Video con controles de audio habilitados
+                        # Video encontrado en el proyecto
                         st.video(video_local, start_time=0)
                         st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
                         st.markdown("*🌸 Tu avatar personalizado en video*")
-                        st.info("🔊 Puedes ajustar el volumen usando los controles del video")
-                    elif os.path.exists(video_downloads):
-                        st.success("✅ ¡Video encontrado en Downloads!")
-                        # Video con controles de audio habilitados
+                        if is_local:
+                            st.info("🔊 Puedes ajustar el volumen usando los controles del video")
+                            
+                    elif is_local and os.path.exists(video_downloads):
+                        # Solo en entorno local
                         st.video(video_downloads, start_time=0)  
                         st.markdown("*✨ Johana Valencia - Tu asistente personalizada de bienestar mental*")
                         st.markdown("*🌸 Tu avatar personalizado en video*")
                         st.info("🔊 Puedes ajustar el volumen usando los controles del video")
+                        
                     else:
-                        st.warning("⚠️ Video no encontrado, mostrando avatar generado")
-                        # Mostrar avatar generado con iniciales
+                        # Si no encuentra video, mostrar avatar elegante generado
                         avatar_img = generar_avatar_personalizado("JV", "Johana Valencia")
-                        st.image(avatar_img, width=250, caption="✨ Johana - Tu asistente personalizada de bienestar mental")
-                        st.markdown("*🌸 Tu avatar personalizado con tus iniciales*")
+                        st.image(avatar_img, width=280, caption="✨ Johana Valencia - Tu asistente personalizada de bienestar mental")
+                        st.markdown("*🌸 Tu avatar personalizado*")
+                        
+                        # Solo mostrar mensaje de video si estamos en local
+                        if is_local:
+                            st.info("💡 Video personal disponible localmente - Usando avatar generado para deployment público")
+                            
                 except Exception as e:
-                    # Si hay cualquier error, mostrar avatar generado
-                    st.error(f"❌ Error cargando video: {str(e)}")
+                    # Si hay cualquier error, mostrar avatar generado elegante
                     avatar_img = generar_avatar_personalizado("JV", "Johana Valencia")
-                    st.image(avatar_img, width=250, caption="✨ Johana - Tu asistente personalizada de bienestar mental")
-                    st.markdown("*🌸 Tu avatar personalizado con tus iniciales*")
+                    st.image(avatar_img, width=280, caption="✨ Johana Valencia - Tu asistente personalizada de bienestar mental")
+                    st.markdown("*🌸 Tu avatar personalizado*")
             
             # Mensaje de bienvenida personalizado
             st.markdown("""
