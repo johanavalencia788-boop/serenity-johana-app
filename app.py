@@ -6,6 +6,8 @@ import numpy as np
 import random
 import io
 import colorsys
+import wave
+import struct
 
 # Configuración inicial
 st.set_page_config(
@@ -210,6 +212,161 @@ def crear_avatar_animado_ia(nombre, frames=4):
         frames_generados.append(avatar_img)
     
     return frames_generados
+
+def generar_musica_relajante(tipo="piano", duracion=30):
+    """Genera música relajante usando numpy"""
+    sample_rate = 44100
+    duration = duracion  # segundos
+    
+    # Crear el array de tiempo
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+    
+    if tipo == "piano":
+        # "Ballade pour Adeline" - Richard Clayderman
+        # Melodía original completa de esta obra maestra
+        
+        # Frecuencias exactas de las notas (Hz)
+        # Tema principal de Ballade pour Adeline
+        notas_melodia = [
+            # Introducción melancólica - Frase A
+            349.23, 392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00,  # Fa-Sol-La-Si-Do-Si-La-Sol
+            
+            # Desarrollo emotivo - Frase B  
+            329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 523.25, 466.16,  # Mi-Fa#-Sol#-La#-Do-Re-Do-La#
+            
+            # Tema principal Adeline - Frase C (la parte más reconocible)
+            392.00, 440.00, 493.88, 523.25, 587.33, 659.25, 698.46, 659.25,  # Sol-La-Si-Do-Re-Mi-Fa-Mi
+            587.33, 523.25, 493.88, 440.00, 392.00, 349.23, 329.63, 293.66,  # Re-Do-Si-La-Sol-Fa-Mi-Re
+            
+            # Variación ornamental - Frase D
+            523.25, 466.16, 415.30, 369.99, 329.63, 369.99, 415.30, 466.16,  # Do-La#-Sol#-Fa#-Mi-Fa#-Sol#-La#
+            
+            # Clímax romántico - Frase E (octava alta)
+            659.25, 698.46, 783.99, 880.00, 987.77, 880.00, 783.99, 698.46,  # Mi-Fa-Sol-La-Si-La-Sol-Fa (alta)
+            
+            # Resolución final - Frase F (descenso suave)
+            659.25, 587.33, 523.25, 466.16, 415.30, 369.99, 329.63, 293.66,  # Mi-Re-Do-La#-Sol#-Fa#-Mi-Re
+            261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 261.63   # Do-Re-Mi-Fa-Sol-Fa-Mi-Do
+        ]
+        
+        # Duraciones específicas para cada frase (ritmo de Ballade pour Adeline)
+        duraciones_notas = [
+            # Frase A - Introducción (notas largas y expresivas)
+            0.8, 0.6, 0.8, 0.6, 1.2, 0.6, 0.8, 1.0,
+            # Frase B - Desarrollo (ritmo moderado)
+            0.6, 0.4, 0.6, 0.4, 0.8, 0.6, 0.8, 0.6,
+            # Frase C - Tema principal (notas fluidas)
+            0.5, 0.5, 0.5, 0.5, 0.7, 0.5, 0.5, 0.7,
+            0.5, 0.5, 0.5, 0.5, 0.7, 0.5, 0.7, 0.8,
+            # Frase D - Variación (notas rápidas y ligeras)
+            0.4, 0.4, 0.4, 0.4, 0.6, 0.4, 0.4, 0.6,
+            # Frase E - Clímax (notas sostenidas y dramáticas)
+            1.0, 0.8, 1.0, 0.8, 1.2, 0.8, 1.0, 1.2,
+            # Frase F - Resolución final (rallentando gradual)
+            0.8, 0.6, 0.8, 0.6, 0.8, 0.6, 1.0, 1.5
+        ]
+        
+        audio = np.zeros_like(t)
+        tiempo_actual = 0
+        
+        for i, (freq, dur_nota) in enumerate(zip(notas_melodia, duraciones_notas)):
+            # Ajustar duración proporcionalmente
+            duracion_real = dur_nota * (duration / sum(duraciones_notas))
+            
+            # Calcular posición en el array
+            inicio = int(tiempo_actual * sample_rate)
+            fin = int((tiempo_actual + duracion_real) * sample_rate)
+            if fin > len(t):
+                fin = len(t)
+            
+            # Tiempo específico para esta nota
+            t_nota = np.linspace(0, duracion_real, fin - inicio, False)
+            tiempo_actual += duracion_real
+            
+            # Crear sonido de piano más realista
+            # Fundamental + armónicos para timbre de piano
+            nota = np.sin(2 * np.pi * freq * t_nota) * 0.5        # Fundamental
+            nota += np.sin(2 * np.pi * freq * 2 * t_nota) * 0.25  # Octava
+            nota += np.sin(2 * np.pi * freq * 3 * t_nota) * 0.12  # Quinta perfecta
+            nota += np.sin(2 * np.pi * freq * 4 * t_nota) * 0.08  # Doble octava
+            nota += np.sin(2 * np.pi * freq * 0.5 * t_nota) * 0.15 # Sub-armónico
+            
+            # Envolvente más natural (ataque rápido, decay suave)
+            envolvente = np.exp(-t_nota * 1.2) * (1 - np.exp(-t_nota * 30))
+            
+            # Añadir acompañamiento armónico sutil
+            if i % 4 == 0:  # Cada 4 notas, añadir acorde de acompañamiento
+                acorde_freq = freq / 2  # Una octava abajo
+                acompañamiento = np.sin(2 * np.pi * acorde_freq * t_nota) * 0.2 * envolvente
+                acompañamiento += np.sin(2 * np.pi * acorde_freq * 1.25 * t_nota) * 0.15 * envolvente  # Tercera
+                audio[inicio:fin] += acompañamiento
+            
+            # Aplicar envolvente y añadir al audio total
+            nota *= envolvente
+            audio[inicio:fin] += nota
+        
+        # Procesamiento final para sonido más suave y romántico
+        audio = audio * 0.4  # Volumen moderado
+        
+    elif tipo == "naturaleza":
+        # Simulación de sonidos de lluvia y viento
+        # Ruido blanco filtrado para simular lluvia
+        lluvia = np.random.normal(0, 0.1, len(t))
+        
+        # Filtro pasa bajos simple para suavizar
+        for i in range(1, len(lluvia)):
+            lluvia[i] = 0.9 * lluvia[i-1] + 0.1 * lluvia[i]
+        
+        # Agregar tonos bajos para viento
+        viento = 0.05 * np.sin(40 * 2 * np.pi * t) + 0.03 * np.sin(60 * 2 * np.pi * t)
+        
+        audio = lluvia + viento
+        audio = audio * 0.5
+        
+    elif tipo == "ambient":
+        # Drones ambientales
+        frecuencias_base = [110, 165, 220]  # A2, E3, A3
+        audio = np.zeros_like(t)
+        
+        for freq in frecuencias_base:
+            # Ondas senoidales con modulación lenta
+            onda = np.sin(2 * np.pi * freq * t) * 0.3
+            modulacion = 1 + 0.2 * np.sin(0.1 * 2 * np.pi * t)
+            audio += onda * modulacion
+        
+        audio = audio * 0.3
+        
+    elif tipo == "meditacion":
+        # Tonos de cuencos tibetanos
+        frecuencias_cuencos = [256, 341.3, 426.7, 512]  # Do, Fa, La, Do octava
+        audio = np.zeros_like(t)
+        
+        for i, freq in enumerate(frecuencias_cuencos):
+            # Tono principal con decay
+            tono = np.sin(2 * np.pi * freq * t) * np.exp(-t * 0.3)
+            # Armónicos
+            tono += 0.3 * np.sin(2 * np.pi * freq * 2 * t) * np.exp(-t * 0.5)
+            # Reverb simulado
+            tono += 0.1 * np.sin(2 * np.pi * freq * t + np.pi/4) * np.exp(-t * 0.2)
+            
+            audio += tono * 0.25
+    
+    # Normalizar audio
+    audio = audio / np.max(np.abs(audio))
+    
+    # Convertir a formato WAV
+    audio_int = (audio * 32767).astype(np.int16)
+    
+    # Crear archivo WAV en memoria
+    wav_buffer = io.BytesIO()
+    with wave.open(wav_buffer, 'wb') as wav_file:
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16-bit
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(audio_int.tobytes())
+    
+    wav_buffer.seek(0)
+    return wav_buffer.getvalue()
 
 def crear_avatar_personalizado():
     """Función principal para crear avatars personalizados"""
@@ -448,6 +605,41 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
+    # Sección de Música Relajante
+    st.markdown("---")
+    st.markdown("## 🎵 Música Relajante")
+    st.markdown("Disfruta de música generada especialmente para tu relajación")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🎹 Piano - Ballade pour Adeline", key="piano_btn"):
+            with st.spinner("🎼 Generando melodía de Richard Clayderman..."):
+                audio_data = generar_musica_relajante("piano", 30)
+                st.audio(audio_data, format='audio/wav')
+                st.success("🎵 ¡Disfruta de Ballade pour Adeline!")
+    
+    with col2:
+        if st.button("🌊 Sonidos de Naturaleza", key="natura_btn"):
+            with st.spinner("🌧️ Creando ambiente natural..."):
+                audio_data = generar_musica_relajante("naturaleza", 30)
+                st.audio(audio_data, format='audio/wav')
+                st.success("🌿 ¡Relájate con la naturaleza!")
+    
+    with col3:
+        if st.button("🌌 Música Ambiental", key="ambient_btn"):
+            with st.spinner("✨ Generando atmósfera relajante..."):
+                audio_data = generar_musica_relajante("ambient", 30)
+                st.audio(audio_data, format='audio/wav')
+                st.success("🌟 ¡Sumérgete en la calma!")
+    
+    with col4:
+        if st.button("🧘 Meditación", key="meditation_btn"):
+            with st.spinner("🎎 Creando sonidos de cuencos..."):
+                audio_data = generar_musica_relajante("meditacion", 30)
+                st.audio(audio_data, format='audio/wav')
+                st.success("🕉️ ¡Medita con serenidad!")
+
     # Footer
     st.markdown("---")
     st.markdown("""
