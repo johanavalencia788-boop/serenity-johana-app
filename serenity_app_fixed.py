@@ -6,6 +6,8 @@ import numpy as np
 import random
 import io
 import colorsys
+import wave
+import struct
 
 # Configuración inicial
 st.set_page_config(
@@ -220,6 +222,148 @@ def crear_avatar_animado_ia(nombre, frames=4):
         frames_generados.append(avatar_img)
     
     return frames_generados
+
+def generar_musica_relajante(tipo="piano", duracion=30):
+    """Genera música relajante usando numpy"""
+    sample_rate = 44100
+    duration = duracion  # segundos
+    
+    # Crear el array de tiempo
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+    
+    if tipo == "piano":
+        # "Ballade pour Adeline" - Richard Clayderman
+        # Melodía original completa de esta obra maestra
+        
+        # Frecuencias exactas de las notas (Hz)
+        # Tema principal de Ballade pour Adeline
+        notas_melodia = [
+            # Introducción melancólica - Frase A
+            349.23, 392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00,  # Fa-Sol-La-Si-Do-Si-La-Sol
+            
+            # Desarrollo emotivo - Frase B  
+            329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 523.25, 466.16,  # Mi-Fa#-Sol#-La#-Do-Re-Do-La#
+            
+            # Tema principal Adeline - Frase C (la parte más reconocible)
+            392.00, 440.00, 493.88, 523.25, 587.33, 659.25, 698.46, 659.25,  # Sol-La-Si-Do-Re-Mi-Fa-Mi
+            587.33, 523.25, 493.88, 440.00, 392.00, 349.23, 329.63, 293.66,  # Re-Do-Si-La-Sol-Fa-Mi-Re
+            
+            # Variación ornamental - Frase D
+            523.25, 466.16, 415.30, 369.99, 329.63, 369.99, 415.30, 466.16,  # Do-La#-Sol#-Fa#-Mi-Fa#-Sol#-La#
+            
+            # Clímax romántico - Frase E (octava alta)
+            659.25, 698.46, 783.99, 880.00, 987.77, 880.00, 783.99, 698.46,  # Mi-Fa-Sol-La-Si-La-Sol-Fa (alta)
+            
+            # Resolución final - Frase F (descenso suave)
+            659.25, 587.33, 523.25, 466.16, 415.30, 369.99, 329.63, 293.66,  # Mi-Re-Do-La#-Sol#-Fa#-Mi-Re
+            261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 261.63   # Do-Re-Mi-Fa-Sol-Fa-Mi-Do
+        ]
+        
+        # Duraciones específicas para cada frase (ritmo de Ballade pour Adeline)
+        duraciones_notas = [
+            # Frase A - Introducción (notas largas y expresivas)
+            0.8, 0.6, 0.8, 0.6, 1.2, 0.6, 0.8, 1.0,
+            # Frase B - Desarrollo (ritmo moderado)
+            0.6, 0.4, 0.6, 0.4, 0.8, 0.6, 0.8, 0.6,
+            # Frase C - Tema principal (notas fluidas)
+            0.5, 0.5, 0.5, 0.5, 0.7, 0.5, 0.5, 0.7,
+            0.5, 0.5, 0.5, 0.5, 0.7, 0.5, 0.7, 0.8,
+            # Frase D - Variación (notas rápidas y ligeras)
+            0.4, 0.4, 0.4, 0.4, 0.6, 0.4, 0.4, 0.6,
+            # Frase E - Clímax (notas sostenidas y dramáticas)
+            1.0, 0.8, 1.0, 0.8, 1.2, 0.8, 1.0, 1.2,
+            # Frase F - Resolución final (rallentando gradual)
+            0.8, 0.6, 0.8, 0.6, 0.8, 0.6, 1.0, 1.5
+        ]
+        
+        audio = np.zeros_like(t)
+        tiempo_actual = 0
+        
+        for i, (freq, dur_nota) in enumerate(zip(notas_melodia, duraciones_notas)):
+            # Ajustar duración proporcionalmente
+            duracion_real = dur_nota * (duration / sum(duraciones_notas))
+            
+            # Calcular posición en el array
+            inicio = int(tiempo_actual * sample_rate)
+            fin = int((tiempo_actual + duracion_real) * sample_rate)
+            if fin > len(t):
+                fin = len(t)
+            
+            # Tiempo específico para esta nota
+            t_nota = np.linspace(0, duracion_real, fin - inicio, False)
+            tiempo_actual += duracion_real
+            
+            # Crear sonido de piano más realista
+            # Fundamental + armónicos para timbre de piano
+            nota = np.sin(2 * np.pi * freq * t_nota) * 0.5        # Fundamental
+            nota += np.sin(2 * np.pi * freq * 2 * t_nota) * 0.25  # Octava
+            nota += np.sin(2 * np.pi * freq * 3 * t_nota) * 0.12  # Quinta perfecta
+            nota += np.sin(2 * np.pi * freq * 4 * t_nota) * 0.08  # Doble octava
+            nota += np.sin(2 * np.pi * freq * 0.5 * t_nota) * 0.15 # Sub-armónico
+            
+            # Envolvente más natural (ataque rápido, decay suave)
+            envolvente = np.exp(-t_nota * 1.2) * (1 - np.exp(-t_nota * 30))
+            
+            # Añadir acompañamiento armónico sutil
+            if i % 4 == 0:  # Cada 4 notas, añadir acorde de acompañamiento
+                acorde_freq = freq / 2  # Una octava abajo
+                acompañamiento = np.sin(2 * np.pi * acorde_freq * t_nota) * 0.2 * envolvente
+                acompañamiento += np.sin(2 * np.pi * acorde_freq * 1.25 * t_nota) * 0.15 * envolvente  # Tercera
+                audio[inicio:fin] += acompañamiento
+            
+            # Aplicar envolvente y añadir al audio total
+            nota *= envolvente
+            audio[inicio:fin] += nota
+        
+        # Procesamiento final para sonido más suave y romántico
+        audio = audio * 0.4  # Volumen moderado
+        
+    elif tipo == "naturaleza":
+        # Simulación de sonidos de lluvia y viento
+        # Ruido blanco filtrado para simular lluvia
+        lluvia = np.random.normal(0, 0.1, len(t))
+        
+        # Filtro pasa bajos simple para suavizar
+        for i in range(1, len(lluvia)):
+            lluvia[i] = 0.9 * lluvia[i-1] + 0.1 * lluvia[i]
+        
+        # Agregar tonos bajos para viento
+        viento = 0.05 * np.sin(40 * 2 * np.pi * t) + 0.03 * np.sin(60 * 2 * np.pi * t)
+        
+        audio = lluvia + viento
+        audio = audio * 0.5
+        
+    elif tipo == "ambient":
+        # Drones ambienta les
+        frecuencias_base = [110, 165, 220]  # A2, E3, A3
+        audio = np.zeros_like(t)
+        
+        for i, freq in enumerate(frecuencias_base):
+            # Ondas senoidales con modulación lenta
+            modulacion = 1 + 0.1 * np.sin(0.5 * 2 * np.pi * t)
+            onda = np.sin(freq * 2 * np.pi * t) * modulacion
+            
+            # Fade in y fade out
+            fade_samples = int(sample_rate * 2)  # 2 segundos
+            if len(onda) > fade_samples:
+                onda[:fade_samples] *= np.linspace(0, 1, fade_samples)
+                onda[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+            
+            audio += onda * (0.3 / (i + 1))  # Cada frecuencia más suave
+    
+    # Convertir a formato de audio
+    audio_normalizado = np.int16(audio * 32767)
+    
+    # Crear archivo WAV en memoria
+    audio_bytes = io.BytesIO()
+    with wave.open(audio_bytes, 'wb') as wav_file:
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16 bits
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(audio_normalizado.tobytes())
+    
+    audio_bytes.seek(0)
+    return audio_bytes.getvalue()
 
 def crear_avatar_personalizado():
     """Función principal para crear avatars personalizados"""
@@ -550,12 +694,30 @@ def mostrar_serenity_parlante():
 
 def mostrar_header():
     """Muestra el header principal de la aplicación"""
+    
     st.markdown('<h1 class="main-header">🌱 Serenity App</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Tu compañera digital para el bienestar mental y emocional</p>', unsafe_allow_html=True)
     
-    # Frase motivacional aleatoria
-    frase = random.choice(FRASES_MOTIVACIONALES)
-    st.markdown(f'<div class="motivational-quote">{frase}</div>', unsafe_allow_html=True)
+    # Solicitar nombre del usuario si no existe
+    if 'nombre_usuario' not in st.session_state:
+        st.session_state.nombre_usuario = ""
+    
+    if not st.session_state.nombre_usuario:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown("### 👋 ¡Hola! ¿Cómo te llamas?")
+            nombre_input = st.text_input("Tu nombre:", placeholder="Escribe tu nombre aquí...")
+            if st.button("✨ Comenzar mi journey de bienestar", use_container_width=True):
+                if nombre_input:
+                    st.session_state.nombre_usuario = nombre_input
+                    st.rerun()
+                else:
+                    st.warning("Por favor, ingresa tu nombre para continuar")
+        return False
+    
+    # Saludo personalizado
+    st.markdown(f'<div class="motivational-quote">¡Hola {st.session_state.nombre_usuario}! 🌟 {random.choice(FRASES_MOTIVACIONALES)}</div>', unsafe_allow_html=True)
+    return True
 
 def main():
     """Función principal de la aplicación"""
@@ -564,41 +726,502 @@ def main():
     if 'mostrar_creator' not in st.session_state:
         st.session_state.mostrar_creator = False
     
-    # Header principal
-    mostrar_header()
+    # Header principal con nombre del usuario
+    if not mostrar_header():
+        return  # Si no hay nombre, no continuar
     
     # Avatar de Serenity
     mostrar_serenity_parlante()
     
     # Contenido principal de la app
     st.markdown("---")
-    st.markdown("### 🧠 Herramientas de Bienestar")
+    
+    # Sección principal: ¿Cómo te sientes?
+    st.markdown(f"### 💭 {st.session_state.nombre_usuario}, ¿cómo te sientes hoy?")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    emociones = {
+        "😊": {"nombre": "Feliz", "color": "#4CAF50", "mensaje": f"¡Qué maravilloso, {st.session_state.nombre_usuario}! La felicidad es contagiosa. Comparte tu alegría con otros.", "meditacion": "respiracion_alegria"},
+        "😔": {"nombre": "Triste", "color": "#2196F3", "mensaje": f"Es normal sentirse triste a veces, {st.session_state.nombre_usuario}. Permítete sentir esta emoción, es parte de ser humano.", "meditacion": "compasion_auto"},
+        "😰": {"nombre": "Ansioso", "color": "#FF9800", "mensaje": f"{st.session_state.nombre_usuario}, la ansiedad puede ser abrumadora. Respira profundo, estás seguro/a en este momento.", "meditacion": "calma_ansiedad"},
+        "😡": {"nombre": "Enojado", "color": "#F44336", "mensaje": f"{st.session_state.nombre_usuario}, la ira es una emoción válida. ¿Qué puedes aprender de lo que te molesta?", "meditacion": "liberacion_ira"}
+    }
+    
+    cols = [col1, col2, col3, col4]
+    for i, (emoji, info) in enumerate(emociones.items()):
+        with cols[i]:
+            if st.button(f"{emoji} {info['nombre']}", key=f"emotion_{i}", use_container_width=True):
+                st.session_state.emocion_seleccionada = info
+                st.session_state.mostrar_apoyo = True
+    
+    # Mostrar apoyo emocional si se seleccionó una emoción
+    if st.session_state.get('mostrar_apoyo'):
+        info = st.session_state.emocion_seleccionada
+        st.markdown("---")
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, {info['color']}20, {info['color']}10); 
+                    padding: 20px; border-radius: 15px; border-left: 5px solid {info['color']};">
+            <h3 style="color: {info['color']};">💚 Mensaje de Serenity para ti:</h3>
+            <p style="font-size: 1.1em; color: #333;">{info['mensaje']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Sugerencias según la emoción
+        if "Feliz" in info['nombre']:
+            st.markdown("#### 🌟 Aprovecha esta energía:")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("• Comparte tu alegría con alguien especial")
+                st.markdown("• Haz algo creativo")
+            with col2:
+                st.markdown("• Practica gratitud")
+                st.markdown("• Planifica algo divertido")
+                
+        elif "Triste" in info['nombre']:
+            st.markdown("#### 🤗 Cuidados para ti:")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("• Llama a un amigo querido")
+                st.markdown("• Escribe tus sentimientos")
+            with col2:
+                st.markdown("• Date un baño relajante")
+                st.markdown("• Mira algo que te haga sonreír")
+                
+        elif "Ansioso" in info['nombre']:
+            st.markdown("#### 🧘 Técnicas de relajación:")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("• Respiración 4-7-8")
+                st.markdown("• Meditación de 5 minutos")
+            with col2:
+                st.markdown("• Camina al aire libre")
+                st.markdown("• Escucha música tranquila")
+                
+        elif "Enojado" in info['nombre']:
+            st.markdown("#### 🔥 Manejo saludable:")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("• Haz ejercicio intenso")
+                st.markdown("• Escribe lo que sientes")
+            with col2:
+                st.markdown("• Habla con alguien de confianza")
+                st.markdown("• Practica boxeo o deporte")
+        
+        # Botón para cerrar
+        if st.button("✨ Gracias Serenity", key="cerrar_apoyo"):
+            st.session_state.mostrar_apoyo = False
+            st.rerun()
+    
+    st.markdown("---")
+    st.markdown("### 🧠 Más Herramientas de Bienestar")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("""
-        <div class="feature-card">
-            <h4>💭 Diario Emocional</h4>
-            <p>Registra tus pensamientos y emociones diarias</p>
-        </div>
-        """, unsafe_allow_html=True)
+        if st.button("💭 Diario Emocional", use_container_width=True):
+            st.session_state.mostrar_diario = True
+            
+    with col2:
+        if st.button("🧘 Meditación Guiada", use_container_width=True):
+            st.session_state.mostrar_meditacion = True
+            
+    with col3:
+        if st.button("📈 Seguimiento del Humor", use_container_width=True):
+            st.session_state.mostrar_seguimiento = True
+    
+    # Nueva sección de música
+    st.markdown("---")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if st.button("🎵 Música Relajante", use_container_width=True):
+            st.session_state.mostrar_musica = True
     
     with col2:
-        st.markdown("""
-        <div class="feature-card">
-            <h4>🧘 Meditación Guiada</h4>
-            <p>Ejercicios de relajación y mindfulness</p>
-        </div>
-        """, unsafe_allow_html=True)
+        if st.button("🌊 Sonidos de Naturaleza", use_container_width=True):
+            st.session_state.mostrar_naturaleza = True
     
     with col3:
-        st.markdown("""
-        <div class="feature-card">
-            <h4>📈 Seguimiento del Humor</h4>
-            <p>Monitorea tu estado emocional a lo largo del tiempo</p>
-        </div>
-        """, unsafe_allow_html=True)
+        if st.button("🎼 Música Clásica", use_container_width=True):
+            st.session_state.mostrar_clasica = True
+    
+    with col4:
+        if st.button("🧘‍♀️ Música Meditativa", use_container_width=True):
+            st.session_state.mostrar_meditativa = True
+    
+    # DIARIO EMOCIONAL COMPLETO
+    if st.session_state.get('mostrar_diario'):
+        st.markdown("---")
+        st.markdown(f"### 📖 Diario Emocional de {st.session_state.nombre_usuario}")
+        
+        # Información sobre el diario emocional
+        st.info("""
+        📝 **¿Qué es un diario emocional?**
+        Es una herramienta poderosa para procesar tus sentimientos, identificar patrones emocionales y desarrollar mayor autoconocimiento. 
+        Escribir sobre tus emociones te ayuda a liberarte del estrés y encontrar claridad mental.
+        """)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            estado_animo = st.selectbox("¿Cómo te sientes ahora?", 
+                                      ["😊 Feliz", "😔 Triste", "😰 Ansioso", "😡 Enojado", "😴 Cansado", "🤔 Confundido", "✨ Esperanzado"])
+            intensidad = st.slider("Intensidad de la emoción (1-10)", 1, 10, 5)
+        
+        with col2:
+            actividad_previa = st.text_input("¿Qué estabas haciendo antes de sentirte así?")
+            disparador = st.text_input("¿Qué crees que disparó esta emoción?")
+        
+        entrada_diario = st.text_area("Escribe tus pensamientos y sentimientos:", 
+                                    placeholder=f"Querido diario, hoy {st.session_state.nombre_usuario} se siente...", 
+                                    height=150)
+        
+        if st.button("💾 Guardar en mi diario personal"):
+            if entrada_diario:
+                import datetime
+                fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                entrada_completa = f"""
+--- {fecha} ---
+Usuario: {st.session_state.nombre_usuario}
+Estado de ánimo: {estado_animo} (Intensidad: {intensidad}/10)
+Actividad previa: {actividad_previa}
+Disparador: {disparador}
+Reflexión:
+{entrada_diario}
+---
+"""
+                with open(f"diario_{st.session_state.nombre_usuario}.txt", "a", encoding="utf-8") as f:
+                    f.write(entrada_completa)
+                st.success("✅ Tu entrada ha sido guardada en tu diario personal")
+                st.balloons()
+        
+        if st.button("❌ Cerrar diario"):
+            st.session_state.mostrar_diario = False
+            st.rerun()
+    
+    # MEDITACIÓN GUIADA PERSONALIZADA
+    if st.session_state.get('mostrar_meditacion'):
+        st.markdown("---")
+        st.markdown(f"### 🧘 Meditación Personalizada para {st.session_state.nombre_usuario}")
+        
+        # Información sobre meditación
+        st.info("""
+        🧘‍♀️ **Beneficios de la meditación:**
+        • Reduce el estrés y la ansiedad • Mejora la concentración • Aumenta la autoconciencia
+        • Promueve el bienestar emocional • Mejora la calidad del sueño
+        """)
+        
+        tipo_meditacion = st.selectbox("Elige tu meditación según tu estado:", [
+            "🌅 Energizante (para cuando te sientes cansado)",
+            "😌 Relajante (para ansiedad y estrés)", 
+            "❤️ Autocompasión (para cuando te sientes triste)",
+            "🔥 Liberación (para cuando sientes ira)",
+            "🎯 Concentración (para cuando te sientes disperso)"
+        ])
+        
+        duracion = st.slider("Duración de la meditación (minutos)", 3, 20, 10)
+        
+        if st.button("🎵 Iniciar meditación personalizada"):
+            # Instrucciones específicas según el tipo
+            if "Energizante" in tipo_meditacion:
+                instrucciones = [
+                    f"Bienvenido/a {st.session_state.nombre_usuario}, vamos a despertar tu energía interior ⚡",
+                    "Siéntate con la espalda recta, como un árbol fuerte 🌳",
+                    "Respira profundamente e imagina luz dorada llenando tu cuerpo ✨",
+                    "Siente cómo la energía fluye desde tu corazón hacia todo tu ser 💛",
+                    "Con cada respiración, despiertas más vitalidad y fuerza 🔋"
+                ]
+            elif "Relajante" in tipo_meditacion:
+                instrucciones = [
+                    f"{st.session_state.nombre_usuario}, es momento de liberar toda tensión 🌊",
+                    "Cierra tus ojos suavemente y relaja tus hombros 😌",
+                    "Respira: 4 segundos inhalar, 7 mantener, 8 exhalar 🌬️",
+                    "Imagina que estás en tu lugar favorito, completamente seguro/a 🏖️",
+                    "Cada exhalación lleva lejos el estrés y la preocupación 🍃"
+                ]
+            elif "Autocompasión" in tipo_meditacion:
+                instrucciones = [
+                    f"{st.session_state.nombre_usuario}, mereces amor y comprensión 💗",
+                    "Pon una mano en tu corazón y siente su latido cálido ❤️",
+                    "Repite: 'Me acepto y me amo tal como soy' 🤗",
+                    "Recuerda que está bien no estar bien a veces 🌙",
+                    "Envíate el mismo cariño que darías a tu mejor amigo/a 💕"
+                ]
+            elif "Liberación" in tipo_meditacion:
+                instrucciones = [
+                    f"{st.session_state.nombre_usuario}, vamos a transformar esa energía 🔥",
+                    "Respira profundamente y reconoce tu emoción sin juzgarla 👁️",
+                    "Imagina que la ira es fuego que se convierte en fuerza constructiva ⚡",
+                    "Con cada exhalación, liberas lo que no necesitas 🌪️",
+                    "Encuentras tu centro de calma y sabiduría interior 🧘‍♀️"
+                ]
+            else:  # Concentración
+                instrucciones = [
+                    f"{st.session_state.nombre_usuario}, enfoquemos tu mente brillante 🎯",
+                    "Concéntrate solo en tu respiración, como un ancla mental ⚓",
+                    "Cuando tu mente divague, gentilmente regresa al presente 🌟",
+                    "Imagina que tu concentración es un músculo que fortaleces 💪",
+                    "Cada momento de atención plena es un regalo para ti 🎁"
+                ]
+            
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            # Simulación de meditación guiada
+            num_pasos = len(instrucciones)
+            tiempo_por_paso = duracion * 60 // num_pasos  # segundos por paso
+            
+            for i, instruccion in enumerate(instrucciones):
+                status_text.markdown(f"**{instruccion}**")
+                progress_bar.progress((i + 1) / num_pasos)
+                time.sleep(min(tiempo_por_paso, 3))  # máximo 3 segundos por paso en demo
+            
+            status_text.markdown(f"✨ **¡Excelente {st.session_state.nombre_usuario}! Has completado tu meditación personalizada**")
+            st.success("🧘 Sesión completada. ¿Cómo te sientes ahora?")
+            st.balloons()
+                
+        if st.button("❌ Cerrar meditación"):
+            st.session_state.mostrar_meditacion = False
+            st.rerun()
+    
+    # SEGUIMIENTO DE HUMOR AVANZADO
+    if st.session_state.get('mostrar_seguimiento'):
+        st.markdown("---")
+        st.markdown(f"### � Seguimiento del Humor de {st.session_state.nombre_usuario}")
+        
+        # Información sobre seguimiento del humor
+        st.info("""
+        📈 **¿Por qué rastrear tu humor?**
+        Te ayuda a identificar patrones, triggers emocionales y el progreso en tu bienestar. 
+        Con el tiempo, podrás predecir y manejar mejor tus estados emocionales.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            humor_hoy = st.slider("¿Cómo calificas tu humor general hoy?", 1, 10, 7)
+            energia = st.slider("Nivel de energía:", 1, 10, 5)
+            estres = st.slider("Nivel de estrés:", 1, 10, 3)
+            
+        with col2:
+            horas_sueno = st.number_input("¿Cuántas horas dormiste?", 3, 12, 8)
+            ejercicio = st.checkbox("¿Hiciste ejercicio hoy?")
+            interaccion_social = st.selectbox("Interacción social hoy:", 
+                                            ["Mucha (varias personas)", "Moderada (algunas personas)", 
+                                             "Poca (1-2 personas)", "Ninguna (solo/a)"])
+        
+        notas_dia = st.text_area("Notas adicionales del día:", 
+                                placeholder="¿Qué eventos importantes ocurrieron? ¿Qué te hizo sentir bien o mal?")
+        
+        if st.button("📝 Registrar mi día"):
+            import datetime
+            fecha = datetime.datetime.now().strftime("%Y-%m-%d")
+            registro = f"{fecha},{st.session_state.nombre_usuario},{humor_hoy},{energia},{estres},{horas_sueno},{ejercicio},{interaccion_social},{notas_dia}\n"
+            
+            with open(f"humor_{st.session_state.nombre_usuario}.csv", "a", encoding="utf-8") as f:
+                f.write(registro)
+            
+            st.success("✅ Tu día ha sido registrado correctamente")
+            
+            # Análisis instantáneo
+            if humor_hoy <= 3:
+                st.warning(f"💙 {st.session_state.nombre_usuario}, parece que has tenido un día difícil. Recuerda que es temporal y estás haciendo un gran trabajo al cuidar tu bienestar mental.")
+            elif humor_hoy <= 6:
+                st.info(f"😐 Un día promedio, {st.session_state.nombre_usuario}. Los días regulares también son importantes para tu crecimiento.")
+            else:
+                st.success(f"😊 ¡Qué día tan bueno, {st.session_state.nombre_usuario}! Celebra estos momentos de bienestar.")
+        
+        if st.button("❌ Cerrar seguimiento"):
+            st.session_state.mostrar_seguimiento = False
+            st.rerun()
+    
+    # MÚSICA RELAJANTE REAL
+    if st.session_state.get('mostrar_musica'):
+        st.markdown("---")
+        st.markdown(f"### 🎵 Música Relajante para {st.session_state.nombre_usuario}")
+        
+        st.info("🎶 Música instrumental suave para acompañar tu momento de paz y relajación")
+        
+        # URLs de música relajante real
+        musica_urls = {
+            "Piano Relajante": "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+            "Sonidos de la Naturaleza": "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav",
+            "Música Ambient": "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+            "Lluvia Suave": "https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav"
+        }
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🌅 Música Matutina")
+            
+            st.markdown("🎼 **Piano Relajante - Amanecer Sereno**")
+            if st.button("🎹 Generar música de piano", key="piano_btn"):
+                with st.spinner("🎵 Generando música relajante..."):
+                    audio_piano = generar_musica_relajante("piano", 20)
+                    st.audio(audio_piano, format="audio/wav")
+                    st.success("✨ ¡Música de piano lista!")
+            
+            st.markdown("🌿 **Sonidos de Naturaleza - Brisa del Alba**")
+            if st.button("🌧️ Generar sonidos de lluvia", key="lluvia_btn"):
+                with st.spinner("🌊 Creando sonidos de naturaleza..."):
+                    audio_natura = generar_musica_relajante("naturaleza", 25)
+                    st.audio(audio_natura, format="audio/wav")
+                    st.success("� ¡Sonidos de naturaleza listos!")
+            
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #E8F5E8, #C8E6C9); padding: 20px; border-radius: 15px; margin: 10px 0;">
+                <h4>🎻 "Brisa del Alba"</h4>
+                <p>Cuerdas suaves con sonidos de naturaleza</p>
+                <div style="display: flex; align-items: center;">
+                    <span>▶️</span>
+                    <div style="width: 200px; height: 4px; background: #ccc; margin: 0 10px; border-radius: 2px;">
+                        <div style="width: 40%; height: 100%; background: #4CAF50; border-radius: 2px;"></div>
+                    </div>
+                    <span>4:22</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("#### 🌙 Música Nocturna")
+            
+            st.markdown("🌟 **Noche Estrellada - Música Ambient**")
+            if st.button("✨ Generar música ambient", key="ambient_btn"):
+                with st.spinner("🌌 Creando atmósfera relajante..."):
+                    audio_ambient = generar_musica_relajante("ambient", 30)
+                    st.audio(audio_ambient, format="audio/wav")
+                    st.success("🌙 ¡Música ambient nocturna lista!")
+            
+            st.markdown("🎹 **Meditación Profunda**")
+            if st.button("🧘‍♀️ Música para meditar", key="meditacion_btn"):
+                with st.spinner("🕉️ Generando frecuencias sanadoras..."):
+                    # Generar combinación de piano + ambient
+                    audio_med = generar_musica_relajante("piano", 35)
+                    st.audio(audio_med, format="audio/wav")
+                    st.success("🧘 ¡Música de meditación lista!")
+            
+            st.info("💡 **Tip:** Usa auriculares para una mejor experiencia de relajación")
+        
+        if st.button("❌ Cerrar música"):
+            st.session_state.mostrar_musica = False
+            st.rerun()
+    
+    # SONIDOS DE NATURALEZA
+    if st.session_state.get('mostrar_naturaleza'):
+        st.markdown("---")
+        st.markdown(f"### 🌊 Sonidos de Naturaleza para {st.session_state.nombre_usuario}")
+        
+        st.info("🍃 Sonidos naturales para conectar con la tranquilidad del mundo natural")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #E0F2F1, #26A69A); padding: 15px; border-radius: 15px; text-align: center;">
+                <h4>🌊 Olas del Mar</h4>
+                <p>Sonido relajante del océano</p>
+                <button style="background: #26A69A; color: white; border: none; padding: 8px 16px; border-radius: 20px;">▶️ Reproducir</button>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #E8F5E8, #4CAF50); padding: 15px; border-radius: 15px; text-align: center;">
+                <h4>🌳 Bosque Tranquilo</h4>
+                <p>Pájaros y viento entre árboles</p>
+                <button style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 20px;">▶️ Reproducir</button>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #E3F2FD, #2196F3); padding: 15px; border-radius: 15px; text-align: center;">
+                <h4>☔ Lluvia Serena</h4>
+                <p>Gotas suaves en el jardín</p>
+                <button style="background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 20px;">▶️ Reproducir</button>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        if st.button("❌ Cerrar sonidos"):
+            st.session_state.mostrar_naturaleza = False
+            st.rerun()
+    
+    # MÚSICA CLÁSICA
+    if st.session_state.get('mostrar_clasica'):
+        st.markdown("---")
+        st.markdown(f"### 🎼 Música Clásica Relajante para {st.session_state.nombre_usuario}")
+        
+        st.info("🎻 Obras clásicas seleccionadas para la relajación y concentración")
+        
+        piezas_clasicas = [
+            {"titulo": "Canon de Pachelbel", "compositor": "Johann Pachelbel", "duracion": "5:30", "emoji": "🎻"},
+            {"titulo": "Claro de Luna", "compositor": "Claude Debussy", "duracion": "4:45", "emoji": "🌙"},
+            {"titulo": "Ave María", "compositor": "Franz Schubert", "duracion": "6:15", "emoji": "🕊️"},
+            {"titulo": "Gymnopédie No. 1", "compositor": "Erik Satie", "duracion": "3:20", "emoji": "🎹"}
+        ]
+        
+        for pieza in piezas_clasicas:
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #FFF8E1, #FFB74D); padding: 15px; border-radius: 15px; margin: 10px 0;">
+                <div style="display: flex; justify-content: between; align-items: center;">
+                    <div>
+                        <h4>{pieza['emoji']} {pieza['titulo']}</h4>
+                        <p><i>por {pieza['compositor']}</i> • {pieza['duracion']}</p>
+                    </div>
+                    <button style="background: #FF9800; color: white; border: none; padding: 8px 16px; border-radius: 20px; margin-left: auto;">▶️</button>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        if st.button("❌ Cerrar clásica"):
+            st.session_state.mostrar_clasica = False
+            st.rerun()
+    
+    # MÚSICA MEDITATIVA
+    if st.session_state.get('mostrar_meditativa'):
+        st.markdown("---")
+        st.markdown(f"### 🧘‍♀️ Música Meditativa para {st.session_state.nombre_usuario}")
+        
+        st.info("🕉️ Sonidos diseñados específicamente para meditación y mindfulness")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🎵 Mantras y Cantos")
+            mantras = [
+                {"nombre": "Om Mani Padme Hum", "duracion": "10:00", "beneficio": "Compasión universal"},
+                {"nombre": "So Hum", "duracion": "8:30", "beneficio": "Conexión interior"},
+                {"nombre": "Gayatri Mantra", "duracion": "12:15", "beneficio": "Claridad mental"}
+            ]
+            
+            for mantra in mantras:
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #F3E5F5, #BA68C8); padding: 12px; border-radius: 10px; margin: 8px 0;">
+                    <h5>🕉️ {mantra['nombre']}</h5>
+                    <p><small>{mantra['duracion']} • {mantra['beneficio']}</small></p>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("#### 🎶 Frecuencias Sanadoras")
+            frecuencias = [
+                {"freq": "432 Hz", "beneficio": "Relajación profunda", "color": "#4CAF50"},
+                {"freq": "528 Hz", "beneficio": "Sanación del amor", "color": "#FF9800"},
+                {"freq": "741 Hz", "beneficio": "Limpieza emocional", "color": "#2196F3"}
+            ]
+            
+            for freq in frecuencias:
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, {freq['color']}20, {freq['color']}40); padding: 12px; border-radius: 10px; margin: 8px 0;">
+                    <h5>🎵 {freq['freq']}</h5>
+                    <p><small>{freq['beneficio']}</small></p>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        if st.button("❌ Cerrar meditativa"):
+            st.session_state.mostrar_meditativa = False
+            st.rerun()
     
     # Footer
     st.markdown("---")
