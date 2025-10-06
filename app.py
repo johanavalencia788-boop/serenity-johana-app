@@ -497,22 +497,60 @@ def crear_avatar_personalizado():
     with tab5:
         st.markdown("#### 📱 Subir Tu Propio Avatar")
         
+        st.markdown("""
+        **💡 Recomendaciones para tu avatar personal:**
+        - **Video**: 30-60 segundos, presentándote de forma natural
+        - **Imagen**: Foto clara de tu rostro, buena iluminación
+        - **Formatos**: MP4, MOV, GIF, JPG, PNG
+        - **Tamaño**: Máximo 200MB
+        """)
+        
         uploaded_file = st.file_uploader(
-            "Sube tu avatar:",
-            type=['mp4', 'mov', 'gif', 'jpg', 'png']
+            "🎬 Arrastra tu archivo aquí:",
+            type=['mp4', 'mov', 'gif', 'jpg', 'png'],
+            help="Sube tu video o imagen personal para usar como avatar"
         )
         
         if uploaded_file is not None:
-            st.success("✅ Archivo subido exitosamente!")
+            st.success("✅ ¡Perfecto! Tu avatar personal ha sido cargado")
             
-            if uploaded_file.type.startswith('image'):
-                st.image(uploaded_file, width=300)
-                st.session_state.avatar_personalizado = uploaded_file
-            else:
-                st.video(uploaded_file)
-                st.session_state.avatar_personalizado = uploaded_file
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                if uploaded_file.type.startswith('image'):
+                    st.image(uploaded_file, width=300, caption="Tu avatar personalizado")
+                    st.session_state.avatar_personalizado = uploaded_file
+                else:
+                    st.video(uploaded_file)
+                    st.session_state.avatar_personalizado = uploaded_file
+                    st.caption("🎬 Tu video personal como avatar")
+            
+            with col2:
+                st.markdown("""
+                **✨ ¡Genial!**
+                
+                Tu avatar personal ahora aparecerá en la pantalla principal.
+                
+                **Beneficios:**
+                - Experiencia más personal
+                - Conexión emocional
+                - Identidad única
+                """)
             
             st.balloons()
+            
+        else:
+            st.info("📁 Selecciona un archivo para comenzar")
+            
+            # Ejemplo visual
+            st.markdown("**📸 Ejemplos de avatares efectivos:**")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown("🎬 **Video**<br>Saluda naturalmente", unsafe_allow_html=True)
+            with col2:
+                st.markdown("📸 **Foto**<br>Sonrisa amigable", unsafe_allow_html=True)
+            with col3:
+                st.markdown("🎭 **Creativo**<br>Tu estilo único", unsafe_allow_html=True)
 
 def mostrar_serenity_parlante():
     """Muestra el avatar de Serenity con opción de personalización"""
@@ -538,7 +576,7 @@ def mostrar_serenity_parlante():
     
     with col2:
         if st.session_state.get('avatar_personalizado'):
-            # Avatar personalizado
+            # Avatar personalizado del usuario
             if isinstance(st.session_state.avatar_personalizado, bytes):
                 avatar_img = Image.open(io.BytesIO(st.session_state.avatar_personalizado))
                 st.image(avatar_img, width=200, caption="Tu avatar personalizado")
@@ -550,8 +588,36 @@ def mostrar_serenity_parlante():
                     else:
                         st.video(st.session_state.avatar_personalizado)
         else:
-            # Avatar por defecto
-            st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity - Tu asistente de bienestar")
+            # Intentar mostrar tu video personal primero
+            import os
+            tu_video = r"c:\Users\johan\Downloads\Untitled video (3).mp4"
+            
+            if os.path.exists(tu_video):
+                st.markdown("#### 🎬 Conoce a Serenity - Tu Avatar Personal")
+                try:
+                    with open(tu_video, 'rb') as video_file:
+                        video_bytes = video_file.read()
+                    st.video(video_bytes)
+                    st.caption("✨ Serenity Johana - Tu asistente personalizada de bienestar mental")
+                except Exception as e:
+                    # Fallback a imagen si hay error con el video
+                    st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity - Tu asistente de bienestar")
+            else:
+                # Mostrar mensaje motivacional y opción de subir video
+                st.markdown("""
+                <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #E8F5E8, #F0F8F0); border-radius: 15px; margin: 10px 0;">
+                    <h4>🌟 ¡Hola! Soy Serenity</h4>
+                    <p>Tu compañera digital para el bienestar mental</p>
+                    <p><em>💡 Puedes personalizar tu avatar usando el botón de arriba</em></p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Avatar por defecto generado con IA
+                if 'avatar_generado' in st.session_state:
+                    avatar_img = Image.open(io.BytesIO(st.session_state.avatar_generado))
+                    st.image(avatar_img, width=200, caption="Avatar generado con IA")
+                else:
+                    st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity - Tu asistente de bienestar")
 
 def mostrar_header():
     """Muestra el header principal de la aplicación"""
