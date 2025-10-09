@@ -424,22 +424,29 @@ def mostrar_serenity_parlante():
             </div>
             """, unsafe_allow_html=True)
         else:
-            # Avatar por defecto
-            st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity Johana - Tu asistente de bienestar")
-            
+            # Avatar por defecto - Video local de Johana
             try:
-                st.markdown(
-                    f"""
-                    <div style="display: flex; justify-content: center; margin: 10px 0;">
-                        <iframe src="https://streamable.com/e/ez13ge" 
-                        width="400" height="300" frameborder="0" allowfullscreen 
-                        style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"></iframe>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                # Primero intentar mostrar el video local
+                st.video("johana_avatar.mp4", format="video/mp4", start_time=0)
+                st.caption("🎭 Serenity Johana - Tu asistente de bienestar personal")
             except:
-                st.info("🎭 Usa el botón 'Personalizar Avatar' para crear el tuyo")
+                # Si no funciona el video local, usar imagen por defecto
+                st.image(AVATAR_SERENITY_IMAGEN, width=200, caption="Serenity Johana - Tu asistente de bienestar")
+                
+                # Video alternativo online
+                try:
+                    st.markdown(
+                        f"""
+                        <div style="display: flex; justify-content: center; margin: 10px 0;">
+                            <iframe src="https://streamable.com/e/ez13ge" 
+                            width="400" height="300" frameborder="0" allowfullscreen 
+                            style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"></iframe>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                except:
+                    st.info("🎭 Usa el botón 'Personalizar Avatar' para crear el tuyo")
     
     # Configuración de avatar personalizado
     st.markdown("---")
