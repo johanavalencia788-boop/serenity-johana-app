@@ -10,7 +10,19 @@
 
 ### 🚀 **[👉 ABRIR APLICACIÓN](https://serenity-johana-app.streamlit.app)**
 
-**Serenity** es una aplicación de bienestar mental completamente personalizada que te acompaña en tu viaje hacia el equilibrio emocional. Combina herramientas profesionales de mindfulness con una experiencia personalizada única.
+# 🌟 Serenity Johana - Tu Asistente Personal de Bienestar Mental
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://serenity-johana-app.streamlit.app)
+[![GitHub Stars](https://img.shields.io/github/stars/johanavalencia788-boop/serenity-johana-app?style=social)](https://github.com/johanavalencia788-boop/serenity-johana-app)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 🌍 **¡Prueba Serenity AHORA!**
+### 🔗 **[USAR SERENITY - CLICK AQUÍ](https://serenity-johana-app.streamlit.app)** 🔗
+
+---
+
+## 🎭 **¿Qué es Serenity Johana?**
+**Serenity Johana** es una aplicación web revolucionaria de **bienestar mental con IA** que combina tecnología avanzada con cuidado emocional personalizado. Con avatar personalizado, chat inteligente y herramientas terapéuticas en español.
 
 ## ✨ Características Principales
 
